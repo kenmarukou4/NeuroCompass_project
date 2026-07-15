@@ -136,7 +136,7 @@ function setActiveNav(path) {
 function renderHome() {
   return `
     <section class="hero">
-      <p class="eyebrow">京都女子高等学校 × 東山高等学校　脳科学ゼミナール</p>
+      <p class="eyebrow">東山高等学校　脳科学ゼミナール</p>
       <h1>講演アシスタントへ<br>ようこそ</h1>
       <p class="hero-lead">紙のレジュメだけでは伝えきれない内容を、予習・当日・復習の3つの場面でサポートします。</p>
       <div class="event-card glass">
