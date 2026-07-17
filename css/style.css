@@ -202,12 +202,8 @@ nav#nav {
 
 /* ---------- コンテンツページ ---------- */
 .illus-wrap { padding: 18px; margin-bottom: 18px; text-align: center; position: relative; }
-.illus, .brain-diagram { width: 100%; height: auto; max-width: 380px; }
+.illus, .brain-diagram { width: 100%; height: auto; max-width: 420px; }
 .illus-label { font-family: var(--font-mono); font-size: 9px; fill: var(--ink-soft); }
-.tap-hint { font-size: .74rem; color: var(--ink-soft); margin: 0 0 6px; }
-.region circle { fill: var(--accent-2); stroke: var(--accent-1); stroke-width: 1.4; cursor: pointer; transition: fill .2s ease; }
-.region:hover circle, .region circle.on { fill: var(--accent-3); }
-.region text { font-size: 10px; fill: var(--ink); font-family: var(--font-body); pointer-events: none; }
 .pulse circle { animation: pulseMove 2.2s ease-in-out infinite; }
 @keyframes pulseMove {
   0% { cx: 130; opacity: 0; }
@@ -215,6 +211,42 @@ nav#nav {
   85% { opacity: 1; }
   100% { cx: 250; opacity: 0; }
 }
+.tap-hint { font-size: .74rem; color: var(--ink-soft); margin: 0 0 6px; }
+
+.brain-outline { transition: opacity .3s ease; }
+.brainstem-shape { opacity: .8; }
+.region { cursor: pointer; }
+.region-shape {
+  fill: var(--accent-2); stroke: var(--accent-1); stroke-width: 1.4;
+  transition: fill .2s ease;
+}
+.region:hover .region-shape { fill: var(--accent-3); }
+.region-shape.active {
+  fill: var(--accent-3);
+  animation: regionPulse 1.7s ease-in-out infinite;
+}
+@keyframes regionPulse {
+  0% { fill: var(--accent-3); }
+  50% { fill: var(--accent-1); }
+  100% { fill: var(--accent-3); }
+}
+.region text { font-size: 10px; fill: var(--ink); font-family: var(--font-body); pointer-events: none; }
+.folia { pointer-events: none; }
+
+#signal-path {
+  fill: none; stroke: var(--accent-3); stroke-width: 3;
+  stroke-linecap: round; stroke-dasharray: 8 6;
+  opacity: 0;
+}
+#signal-path.flowing {
+  opacity: 1;
+  animation: signalFlow 1.1s linear 2;
+}
+@keyframes signalFlow {
+  from { stroke-dashoffset: 160; }
+  to { stroke-dashoffset: 0; }
+}
+
 .tap-card { padding: 14px 16px; text-align: left; margin-top: 12px; }
 .tap-card h3 { margin: 0 0 4px; font-size: 1rem; }
 .tap-card p { margin: 0 0 6px; font-size: .85rem; color: var(--ink-soft); }
@@ -236,6 +268,14 @@ nav#nav {
 
 .term-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .term-card { padding: 14px 16px; display: block; }
+.term-card-img {
+  width: 100%; height: 100px; object-fit: cover; border-radius: 12px;
+  margin-bottom: 8px; display: block; background: var(--accent-2);
+}
+.term-detail-img {
+  width: 100%; max-height: 240px; object-fit: cover; border-radius: 14px;
+  margin-bottom: 14px; display: block; background: var(--accent-2);
+}
 .term-cat {
   display: inline-block; font-size: .64rem; font-family: var(--font-mono);
   padding: 2px 8px; border-radius: 999px; margin-bottom: 6px;

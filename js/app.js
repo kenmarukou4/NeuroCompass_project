@@ -28,37 +28,94 @@ function categoryLabel(cat) {
   return cat === "neuro" ? "脳科学" : "臨床心理";
 }
 
+/* ---------- 脳マップ：部位の座標（信号アニメーションの起点・終点に使用） ---------- */
+const BRAIN_RELAY = "thalamus"; // 視床を情報の中継点として扱う
+const REGION_COORDS = {
+  "prefrontal-cortex": { x: 96, y: 96 },
+  "thalamus": { x: 222, y: 138 },
+  "amygdala": { x: 188, y: 178 },
+  "hippocampus": { x: 224, y: 186 },
+  "cerebellum": { x: 330, y: 205 }
+};
+
+function quadPathBetween(a, b) {
+  // 2点を結ぶ、ゆるやかに湾曲した二次ベジェ曲線のd属性を生成
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2 - 26;
+  return `M${a.x},${a.y} Q${mx},${my} ${b.x},${b.y}`;
+}
+
 /* ---------- SVGイラスト ---------- */
 const SVG = {
-  brainDiagram: (highlight = "") => `
-  <svg viewBox="0 0 360 300" class="brain-diagram" role="img" aria-label="脳の模式図">
+  brainDiagram: () => `
+  <svg viewBox="0 0 420 300" class="brain-diagram" role="img" aria-label="脳の側面模式図">
     <defs>
       <linearGradient id="brainGrad" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stop-color="var(--accent-2)"/>
         <stop offset="1" stop-color="var(--accent-1)"/>
       </linearGradient>
     </defs>
-    <path d="M60 150 C40 90 90 40 160 35 C185 15 240 20 265 55 C310 65 330 110 315 150
-             C335 180 320 225 285 235 C275 265 230 275 200 258
-             C170 275 120 268 105 240 C65 235 45 195 60 150 Z"
-          fill="url(#brainGrad)" opacity="0.18" stroke="var(--accent-1)" stroke-width="2"/>
+
+    <!-- 大脳の輪郭（側面図：左＝前頭、右＝後頭） -->
+    <path class="brain-outline" d="M55,150
+      C48,102 78,55 132,42
+      C160,18 210,16 248,32
+      C286,20 330,34 350,66
+      C382,78 398,108 388,140
+      C404,158 400,188 378,202
+      C374,224 352,236 330,232
+      C322,252 296,262 274,252
+      C258,266 226,266 206,252
+      C176,266 138,258 122,236
+      C90,232 66,206 62,178
+      C50,174 48,160 55,150 Z"
+      fill="url(#brainGrad)" opacity="0.16" stroke="var(--accent-1)" stroke-width="2.2"/>
+
+    <!-- 脳幹 -->
+    <path class="brainstem-shape" d="M254,238 C258,254 262,268 258,286 C250,290 240,288 236,278 C234,262 240,248 248,236 Z"
+      fill="var(--accent-2)" opacity="0.5" stroke="var(--accent-1)" stroke-width="1.2"/>
+
+    <!-- 小脳（折り目テクスチャつき） -->
+    <g class="region cerebellum-group" data-term="cerebellum" tabindex="0" role="button" aria-label="小脳">
+      <path class="region-shape" d="M300,182 C296,164 316,150 340,152 C366,148 388,166 384,192
+        C392,210 378,228 356,228 C344,242 320,240 310,226 C292,222 288,198 300,182 Z"/>
+      <g class="folia" stroke="var(--accent-1)" stroke-width="1" opacity=".45" fill="none">
+        <path d="M304,186 Q330,176 358,186"/>
+        <path d="M300,198 Q334,188 372,200"/>
+        <path d="M306,212 Q334,204 360,214"/>
+      </g>
+      <text x="340" y="196" text-anchor="middle">小脳</text>
+    </g>
+
+    <!-- 前頭前野 -->
     <g class="region" data-term="prefrontal-cortex" tabindex="0" role="button" aria-label="前頭前野">
-      <circle cx="105" cy="110" r="34" class="${highlight === "prefrontal-cortex" ? "on" : ""}"/>
-      <text x="105" y="114" text-anchor="middle">前頭前野</text>
+      <ellipse class="region-shape" cx="96" cy="96" rx="40" ry="32"/>
+      <text x="96" y="100" text-anchor="middle">前頭前野</text>
     </g>
+
+    <!-- 視床（中継点） -->
+    <g class="region" data-term="thalamus" tabindex="0" role="button" aria-label="視床">
+      <circle class="region-shape" cx="222" cy="138" r="20"/>
+      <text x="222" y="142" text-anchor="middle">視床</text>
+    </g>
+
+    <!-- 扁桃体 -->
     <g class="region" data-term="amygdala" tabindex="0" role="button" aria-label="扁桃体">
-      <circle cx="195" cy="168" r="24" class="${highlight === "amygdala" ? "on" : ""}"/>
-      <text x="195" y="172" text-anchor="middle">扁桃体</text>
+      <ellipse class="region-shape" cx="188" cy="178" rx="19" ry="16"/>
+      <text x="188" y="182" text-anchor="middle">扁桃体</text>
     </g>
+
+    <!-- 海馬（湾曲した「たつのおとしご」形） -->
     <g class="region" data-term="hippocampus" tabindex="0" role="button" aria-label="海馬">
-      <circle cx="235" cy="150" r="26" class="${highlight === "hippocampus" ? "on" : ""}"/>
-      <text x="235" y="154" text-anchor="middle">海馬</text>
+      <path class="region-shape" d="M204,168 C220,160 238,168 240,184 C242,198 230,208 218,204
+        C226,198 226,188 216,184 C208,182 204,176 204,168 Z"/>
+      <text x="224" y="200" text-anchor="middle">海馬</text>
     </g>
-    <g class="region" data-term="cerebellum" tabindex="0" role="button" aria-label="小脳">
-      <circle cx="255" cy="215" r="30" class="${highlight === "cerebellum" ? "on" : ""}"/>
-      <text x="255" y="219" text-anchor="middle">小脳</text>
-    </g>
+
+    <!-- 信号が流れるパス（タップ時にJSでd属性を書き換えてアニメーション） -->
+    <path id="signal-path" d=""></path>
   </svg>`,
+
 
   neuronSynapse: () => `
   <svg viewBox="0 0 400 220" class="illus" role="img" aria-label="ニューロンとシナプスの模式図">
@@ -136,7 +193,7 @@ function setActiveNav(path) {
 function renderHome() {
   return `
     <section class="hero">
-      <p class="eyebrow">東山高等学校　脳科学ゼミナール</p>
+      <p class="eyebrow">脳科学ゼミナール　事前学習サイト</p>
       <h1>講演アシスタントへ<br>ようこそ</h1>
       <p class="hero-lead">紙のレジュメだけでは伝えきれない内容を、予習・当日・復習の3つの場面でサポートします。</p>
       <div class="event-card glass">
@@ -276,7 +333,7 @@ function renderPage(pageId) {
       <p>${escapeHtml(data.lead)}</p>
     </section>
     ${illus ? `<div class="illus-wrap glass">${illus}</div>` : ""}
-    ${showBrainDiagram ? `<div class="illus-wrap glass"><p class="tap-hint">部位をタップすると説明が表示されます</p>${SVG.brainDiagram()}<div id="brain-tap-result"></div></div>` : ""}
+    ${showBrainDiagram ? `<div class="illus-wrap glass"><p class="tap-hint">部位をタップすると、視床からの信号が流れ、説明が表示されます</p>${SVG.brainDiagram()}<div id="brain-tap-result"></div></div>` : ""}
     ${data.sections.map((s) => `
       <article class="content-block glass">
         <h2>${escapeHtml(s.heading)}</h2>
@@ -354,9 +411,16 @@ function renderAbout() {
   `;
 }
 
+function termImageTag(t, cssClass) {
+  // 画像は assets/terms/{id}.png という命名規則。ファイルが無ければ静かに非表示にする。
+  return `<img class="${cssClass}" src="assets/terms/${t.id}.png" alt="${escapeHtml(t.term)}のイメージ図"
+    loading="lazy" onerror="this.remove()">`;
+}
+
 function termCardHtml(t) {
   return `
     <a class="term-card glass" href="#/term/${t.id}">
+      ${termImageTag(t, "term-card-img")}
       <span class="term-cat cat-${t.category}">${categoryLabel(t.category)}</span>
       <h3>${escapeHtml(t.term)}</h3>
       <p>${escapeHtml(t.short)}</p>
@@ -393,6 +457,7 @@ function renderTermDetail(id) {
   return `
     <a href="#/glossary" class="back-link">← 辞典に戻る</a>
     <article class="term-detail glass">
+      ${termImageTag(t, "term-detail-img")}
       <span class="term-cat cat-${t.category}">${categoryLabel(t.category)}</span>
       <h1>${escapeHtml(t.term)}</h1>
       <p class="term-reading">読み：${escapeHtml(t.reading)}</p>
@@ -642,12 +707,34 @@ function bindPageEvents(parts) {
   const darkBtn = document.getElementById("dark-toggle-btn");
   if (darkBtn) darkBtn.addEventListener("click", toggleDark);
 
-  // 脳の図タップ
+  // 脳の図タップ：情報が視床から各部位へ流れるアニメーション＋説明カード表示
   document.querySelectorAll(".region").forEach((el) => {
     const handler = () => {
       const id = el.dataset.term;
       const t = termById(id);
       const box = document.getElementById("brain-tap-result");
+
+      // すべての部位のアクティブ状態をリセットしてから、選ばれた部位だけを点灯
+      document.querySelectorAll(".region-shape").forEach((shape) => shape.classList.remove("active"));
+      const shape = el.querySelector(".region-shape");
+      if (shape) shape.classList.add("active");
+
+      // 視床（中継点）から選ばれた部位へ、信号が流れるアニメーション
+      const signalPath = document.getElementById("signal-path");
+      if (signalPath && REGION_COORDS[id]) {
+        if (id === BRAIN_RELAY) {
+          signalPath.classList.remove("flowing");
+          signalPath.removeAttribute("d");
+        } else {
+          const d = quadPathBetween(REGION_COORDS[BRAIN_RELAY], REGION_COORDS[id]);
+          signalPath.setAttribute("d", d);
+          // CSSアニメーションを毎回リスタートさせるため、一度クラスを外してから再度付与する
+          signalPath.classList.remove("flowing");
+          void signalPath.getBBox();
+          signalPath.classList.add("flowing");
+        }
+      }
+
       if (box && t) {
         box.innerHTML = `
           <div class="tap-card glass">
